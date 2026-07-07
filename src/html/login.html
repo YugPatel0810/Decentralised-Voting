@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="Secure voter authentication for the Decentralized Voting System powered by Ethereum blockchain and IPFS.">
+  <title>Decentralized Voting</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+  <div class="login-wrapper">
+
+    <!-- ── Gradient Mesh Hero ─────────────────────────────── -->
+    <header class="gradient-mesh" style="width:100%">
+      <nav class="nav-bar">
+        <a href="/" class="nav-brand">
+          <span class="brand-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+          </span>
+          Decentralized Voting
+        </a>
+      </nav>
+
+      <div class="hero-section stripi-container">
+        <h1 class="display-xl animate-in">Decentralized Voting</h1>
+        <p class="body-lg hero-subtitle animate-in animate-in-delay-1">
+          Secure, transparent elections on the Ethereum blockchain
+        </p>
+      </div>
+    </header>
+
+    <!-- ── Login Card ─────────────────────────────────────── -->
+    <main class="login-card-area">
+      <div class="login-card animate-in animate-in-delay-2">
+        <div class="card-feature-light" style="text-align: center;">
+          <h2 class="heading-lg text-center">Connect Wallet</h2>
+
+          <!-- Error Message -->
+          <div id="login-error" class="login-error-msg" style="display:none; text-align: left;"></div>
+
+          <p class="body-md text-mute mb-xl" style="margin-top: var(--space-md);">
+            Authenticate using your MetaMask wallet to verify your address against the IPFS voter whitelist.
+          </p>
+
+          <button id="login-btn" class="btn-primary-pill"
+            style="width:100%;padding-top:var(--space-md);padding-bottom:var(--space-md);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+            </svg>
+            <span id="login-spinner" class="spinner" style="display:none"></span>
+            <span id="login-btn-text">Connect Wallet to Login</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ── Footer ─────────────────────────────────────────── -->
+    <footer class="footer-light" style="width:100%">
+      <p>Powered by Ethereum &middot; IPFS &middot; Decentralized Voting System</p>
+    </footer>
+
+  </div>
+
+  <script src="/dist/login.bundle.js"></script>
+</body>
+
+</html>

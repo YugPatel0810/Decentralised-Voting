@@ -1,0 +1,1154 @@
+/* ==========================================================================
+   STRIPI DESIGN SYSTEM
+   A unified CSS architecture derived from DESIGN-stripe.md.
+   All tokens, components, and layout primitives in one file.
+   ========================================================================== */
+
+/* ---------- Google Fonts: Inter (substitute for Sohne) ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
+
+/* ==========================================================================
+   1. DESIGN TOKENS (CSS Custom Properties)
+   ========================================================================== */
+:root {
+  /* ---- Colors: Brand & Accent ---- */
+  --color-primary:                #533afd;
+  --color-primary-deep:           #4434d4;
+  --color-primary-press:          #2e2b8c;
+  --color-primary-soft:           #665efd;
+  --color-primary-bg-subdued:     #b9b9f9;
+  --color-brand-dark-900:         #1c1e54;
+  --color-ruby:                   #ea2261;
+  --color-magenta:                #f96bee;
+  --color-lemon:                  #9b6829;
+
+  /* ---- Colors: Ink (Text) ---- */
+  --color-ink:                    #0d253d;
+  --color-ink-secondary:          #273951;
+  --color-ink-mute:               #64748d;
+  --color-ink-mute-2:             #61718a;
+  --color-on-primary:             #ffffff;
+
+  /* ---- Colors: Surface ---- */
+  --color-canvas:                 #ffffff;
+  --color-canvas-soft:            #f6f9fc;
+  --color-canvas-cream:           #f5e9d4;
+  --color-hairline:               #e3e8ee;
+  --color-hairline-input:         #a8c3de;
+  --color-shadow-blue:            #003770;
+
+  /* ---- Typography ---- */
+  --font-family:                  'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+
+  /* ---- Spacing ---- */
+  --space-xxs:  2px;
+  --space-xs:   4px;
+  --space-sm:   8px;
+  --space-md:   12px;
+  --space-lg:   16px;
+  --space-xl:   24px;
+  --space-xxl:  32px;
+  --space-huge: 64px;
+
+  /* ---- Border Radius ---- */
+  --rounded-xs:   4px;
+  --rounded-sm:   6px;
+  --rounded-md:   8px;
+  --rounded-lg:   12px;
+  --rounded-xl:   16px;
+  --rounded-pill: 9999px;
+
+  /* ---- Elevation ---- */
+  --shadow-1: 0 1px 3px rgba(0, 55, 112, 0.08);
+  --shadow-2: 0 8px 24px rgba(0, 55, 112, 0.08), 0 2px 6px rgba(0, 55, 112, 0.04);
+}
+
+
+/* ==========================================================================
+   2. BASE RESET & GLOBALS
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  font-weight: 300;
+  font-feature-settings: "ss01";
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+  line-height: 1.4;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--color-primary-deep);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+
+/* ==========================================================================
+   3. TYPOGRAPHY UTILITIES
+   ========================================================================== */
+.display-xxl {
+  font-size: 56px;
+  font-weight: 300;
+  line-height: 1.03;
+  letter-spacing: -1.4px;
+}
+
+.display-xl {
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: -0.96px;
+}
+
+.display-lg {
+  font-size: 32px;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.64px;
+}
+
+.display-md {
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1.12;
+  letter-spacing: -0.26px;
+}
+
+.heading-lg {
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.22px;
+}
+
+.heading-md {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: -0.2px;
+}
+
+.heading-sm {
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.body-lg {
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.body-md {
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.body-tabular,
+.tabular {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: -0.42px;
+  font-feature-settings: "tnum", "ss01";
+}
+
+.caption {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.39px;
+  font-feature-settings: "tnum", "ss01";
+}
+
+.micro {
+  font-size: 11px;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.micro-cap {
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+}
+
+.text-ink        { color: var(--color-ink); }
+.text-secondary  { color: var(--color-ink-secondary); }
+.text-mute       { color: var(--color-ink-mute); }
+.text-on-primary { color: var(--color-on-primary); }
+.text-primary    { color: var(--color-primary); }
+.text-center     { text-align: center; }
+
+
+/* ==========================================================================
+   4. LAYOUT
+   ========================================================================== */
+.stripi-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-xl);
+  padding-right: var(--space-xl);
+}
+
+.stripi-container--narrow {
+  max-width: 480px;
+}
+
+.stripi-container--mid {
+  max-width: 800px;
+}
+
+.section-padding {
+  padding-top: 96px;
+  padding-bottom: 96px;
+}
+
+.section-padding--compact {
+  padding-top: var(--space-huge);
+  padding-bottom: var(--space-huge);
+}
+
+.section-padding--tight {
+  padding-top: var(--space-xxl);
+  padding-bottom: var(--space-xxl);
+}
+
+.band-soft {
+  background-color: var(--color-canvas-soft);
+}
+
+.band-cream {
+  background-color: var(--color-canvas-cream);
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.gap-sm  { gap: var(--space-sm); }
+.gap-md  { gap: var(--space-md); }
+.gap-lg  { gap: var(--space-lg); }
+.gap-xl  { gap: var(--space-xl); }
+.gap-xxl { gap: var(--space-xxl); }
+
+
+/* ==========================================================================
+   5. GRADIENT MESH BACKDROP
+   The brand's signature atmospheric hero — cream/orange/lavender/indigo/ruby
+   across the upper third. CSS approximation using layered radial gradients.
+   ========================================================================== */
+.gradient-mesh {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-canvas);
+}
+
+.gradient-mesh::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    /* Cream blob — top-left */
+    radial-gradient(ellipse 60% 55% at 5% 20%,
+      rgba(245, 233, 212, 0.9) 0%,
+      transparent 70%),
+    /* Sherbet orange blob */
+    radial-gradient(ellipse 40% 50% at 25% 30%,
+      rgba(247, 186, 119, 0.7) 0%,
+      transparent 65%),
+    /* Lavender wash — center */
+    radial-gradient(ellipse 50% 60% at 50% 25%,
+      rgba(180, 170, 240, 0.65) 0%,
+      transparent 70%),
+    /* Electric indigo — center-right */
+    radial-gradient(ellipse 40% 55% at 70% 20%,
+      rgba(83, 58, 253, 0.55) 0%,
+      transparent 65%),
+    /* Ruby pink — far right */
+    radial-gradient(ellipse 35% 50% at 90% 30%,
+      rgba(234, 34, 97, 0.5) 0%,
+      transparent 60%),
+    /* Magenta accent — subtle */
+    radial-gradient(ellipse 25% 35% at 80% 10%,
+      rgba(249, 107, 238, 0.3) 0%,
+      transparent 55%);
+  filter: blur(40px) saturate(1.3);
+  pointer-events: none;
+}
+
+.gradient-mesh > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ==========================================================================
+   6. NAVIGATION BAR
+   ========================================================================== */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg) var(--space-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.nav-brand .brand-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--color-primary);
+  border-radius: var(--rounded-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-brand .brand-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--color-on-primary);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+
+/* ==========================================================================
+   7. BUTTONS
+   ========================================================================== */
+
+/* Primary Pill — the dominant CTA */
+.btn-primary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.0;
+  font-feature-settings: "ss01";
+  letter-spacing: 0;
+  border: none;
+  border-radius: var(--rounded-pill);
+  padding: var(--space-sm) var(--space-lg);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  text-decoration: none;
+  min-height: 40px;
+}
+
+.btn-primary-pill:hover {
+  background-color: var(--color-primary-deep);
+}
+
+.btn-primary-pill:active {
+  background-color: var(--color-primary-press);
+  transform: scale(0.98);
+}
+
+.btn-primary-pill:focus-visible {
+  outline: 2px solid var(--color-primary-soft);
+  outline-offset: 2px;
+}
+
+.btn-primary-pill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background-color: var(--color-canvas);
+  color: var(--color-primary);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.0;
+  font-feature-settings: "ss01";
+  border: 1px solid var(--color-primary);
+  border-radius: var(--rounded-pill);
+  padding: var(--space-sm) var(--space-lg);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  min-height: 40px;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* Button on Dark */
+.btn-on-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  background-color: var(--color-on-primary);
+  color: var(--color-brand-dark-900);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.0;
+  font-feature-settings: "ss01";
+  border: none;
+  border-radius: var(--rounded-pill);
+  padding: var(--space-sm) var(--space-lg);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  text-decoration: none;
+  min-height: 40px;
+}
+
+.btn-on-dark:hover {
+  background-color: rgba(255, 255, 255, 0.88);
+}
+
+.btn-on-dark:active {
+  transform: scale(0.98);
+}
+
+/* Small button variant */
+.btn-sm {
+  font-size: 14px;
+  padding: 6px var(--space-md);
+  min-height: 32px;
+}
+
+
+/* ==========================================================================
+   8. FORM INPUTS
+   ========================================================================== */
+.text-input {
+  display: block;
+  width: 100%;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.4;
+  font-feature-settings: "ss01";
+  border: 1px solid var(--color-hairline-input);
+  border-radius: var(--rounded-sm);
+  padding: var(--space-sm) var(--space-md);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-height: 40px;
+  outline: none;
+}
+
+.text-input::placeholder {
+  color: var(--color-ink-mute);
+  font-weight: 300;
+}
+
+.text-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(83, 58, 253, 0.12);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-ink-secondary);
+  letter-spacing: -0.14px;
+}
+
+
+/* ==========================================================================
+   9. CARDS & CONTAINERS
+   ========================================================================== */
+
+/* Feature Card — light surface */
+.card-feature-light {
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-xxl);
+  box-shadow: var(--shadow-1);
+}
+
+/* Dashboard Mockup Card — faux IDE/console panel */
+.card-dashboard-mockup {
+  background-color: var(--color-canvas);
+  border-radius: var(--rounded-lg);
+  padding: 0;
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+}
+
+.card-dashboard-mockup .card-chrome {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background-color: var(--color-canvas-soft);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.card-dashboard-mockup .card-chrome .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.card-dashboard-mockup .card-chrome .dot--red    { background-color: #ff5f57; }
+.card-dashboard-mockup .card-chrome .dot--yellow { background-color: #febc2e; }
+.card-dashboard-mockup .card-chrome .dot--green  { background-color: #28c840; }
+
+.card-dashboard-mockup .card-chrome .chrome-title {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-ink-mute);
+  margin-left: var(--space-sm);
+  letter-spacing: 0;
+}
+
+.card-dashboard-mockup .card-body {
+  padding: var(--space-xl);
+}
+
+/* Cream Band Card */
+.card-cream {
+  background-color: var(--color-canvas-cream);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-xxl);
+}
+
+/* Pill Tag */
+.pill-tag-soft {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background-color: var(--color-primary-bg-subdued);
+  color: var(--color-primary-deep);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+  font-feature-settings: "ss01";
+  border-radius: var(--rounded-pill);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+
+/* ==========================================================================
+   10. TABLES
+   ========================================================================== */
+.stripi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.stripi-table thead th {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.39px;
+  font-feature-settings: "tnum", "ss01";
+  color: var(--color-ink-mute);
+  text-align: left;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-hairline);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.stripi-table tbody td {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-ink);
+  font-weight: 300;
+  vertical-align: middle;
+}
+
+.stripi-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.stripi-table tbody tr:hover {
+  background-color: var(--color-canvas-soft);
+}
+
+.stripi-table td.tabular {
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: -0.42px;
+  font-feature-settings: "tnum", "ss01";
+}
+
+
+/* ==========================================================================
+   11. CUSTOM RADIO BUTTONS
+   ========================================================================== */
+.candidate-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-md);
+  cursor: pointer;
+  font-weight: 300;
+  position: relative;
+}
+
+.candidate-radio input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.candidate-radio .radio-mark {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-hairline-input);
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.candidate-radio .radio-mark::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  transition: transform 0.15s ease;
+}
+
+.candidate-radio input[type="radio"]:checked + .radio-mark {
+  border-color: var(--color-primary);
+}
+
+.candidate-radio input[type="radio"]:checked + .radio-mark::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.candidate-radio input[type="radio"]:focus-visible + .radio-mark {
+  box-shadow: 0 0 0 3px rgba(83, 58, 253, 0.15);
+}
+
+
+/* ==========================================================================
+   12. DARK-APP SHELL (Admin Dashboard)
+   ========================================================================== */
+body.dark-shell {
+  background-color: var(--color-brand-dark-900);
+  color: var(--color-on-primary);
+}
+
+body.dark-shell .nav-brand {
+  color: var(--color-on-primary);
+}
+
+body.dark-shell .card-dashboard-mockup {
+  background-color: #232660;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.dark-shell .card-dashboard-mockup .card-chrome {
+  background-color: #1a1c4e;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-shell .card-dashboard-mockup .card-chrome .chrome-title {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-shell .card-dashboard-mockup .card-body {
+  color: var(--color-on-primary);
+}
+
+body.dark-shell .form-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-shell .text-input {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--color-on-primary);
+}
+
+body.dark-shell .text-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+body.dark-shell .text-input:focus {
+  border-color: var(--color-primary-soft);
+  box-shadow: 0 0 0 3px rgba(102, 94, 253, 0.25);
+}
+
+body.dark-shell .stripi-table thead th {
+  color: rgba(255, 255, 255, 0.5);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-shell .stripi-table tbody td {
+  color: var(--color-on-primary);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+body.dark-shell .stripi-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+body.dark-shell .heading-section {
+  color: var(--color-on-primary);
+}
+
+body.dark-shell .status-message {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-shell .form-row-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+
+/* ==========================================================================
+   13. PAGE-SPECIFIC: HERO SECTION
+   ========================================================================== */
+.hero-section {
+  padding-top: 80px;
+  padding-bottom: 100px;
+  text-align: center;
+}
+
+.hero-section h1 {
+  color: var(--color-ink);
+}
+
+.hero-section .hero-subtitle {
+  color: var(--color-ink-secondary);
+  margin-top: var(--space-lg);
+}
+
+.hero-section .hero-meta {
+  margin-top: var(--space-xl);
+}
+
+
+/* ==========================================================================
+   14. PAGE-SPECIFIC: LOGIN CARD
+   ========================================================================== */
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.login-card-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-xxl) var(--space-xl);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-card .card-feature-light {
+  padding: 40px;
+}
+
+.login-card h2 {
+  margin-bottom: var(--space-xl);
+}
+
+.login-card .form-group + .form-group {
+  margin-top: var(--space-lg);
+}
+
+.login-card .btn-primary-pill {
+  width: 100%;
+  margin-top: var(--space-xl);
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-md);
+}
+
+
+/* ==========================================================================
+   15. PAGE-SPECIFIC: VOTING
+   ========================================================================== */
+.voting-content {
+  padding-top: var(--space-huge);
+  padding-bottom: var(--space-huge);
+}
+
+.vote-action-area {
+  margin-top: var(--space-xxl);
+  text-align: center;
+}
+
+.vote-action-area p {
+  color: var(--color-ink-mute);
+  margin-bottom: var(--space-lg);
+}
+
+#msg {
+  margin-top: var(--space-md);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+#msg p {
+  color: var(--color-primary);
+}
+
+.account-footer {
+  text-align: center;
+  padding: var(--space-xl) 0 var(--space-xxl);
+  color: var(--color-ink-mute);
+}
+
+.account-footer p {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-feature-settings: "tnum", "ss01";
+  word-break: break-all;
+}
+
+
+/* ==========================================================================
+   16. PAGE-SPECIFIC: ADMIN DASHBOARD
+   ========================================================================== */
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-header {
+  text-align: center;
+  padding: var(--space-huge) var(--space-xl) var(--space-xxl);
+}
+
+.admin-content {
+  flex: 1;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-xl) var(--space-huge);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxl);
+}
+
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+}
+
+.admin-form-actions {
+  margin-top: var(--space-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.status-message {
+  font-size: 14px;
+  color: var(--color-ink-mute);
+  font-weight: 300;
+}
+
+
+/* ==========================================================================
+   17. FOOTER
+   ========================================================================== */
+.footer-light {
+  background-color: var(--color-canvas);
+  border-top: 1px solid var(--color-hairline);
+  padding: var(--space-huge) var(--space-xl);
+  text-align: center;
+  color: var(--color-ink-mute);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.39px;
+}
+
+
+/* ==========================================================================
+   18. UTILITY CLASSES
+   ========================================================================== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mt-sm  { margin-top: var(--space-sm); }
+.mt-md  { margin-top: var(--space-md); }
+.mt-lg  { margin-top: var(--space-lg); }
+.mt-xl  { margin-top: var(--space-xl); }
+.mt-xxl { margin-top: var(--space-xxl); }
+
+.mb-sm  { margin-bottom: var(--space-sm); }
+.mb-md  { margin-bottom: var(--space-md); }
+.mb-lg  { margin-bottom: var(--space-lg); }
+.mb-xl  { margin-bottom: var(--space-xl); }
+.mb-xxl { margin-bottom: var(--space-xxl); }
+
+
+/* ==========================================================================
+   19. ANIMATIONS
+   ========================================================================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-in {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.animate-in-delay-1 { animation-delay: 0.1s; }
+.animate-in-delay-2 { animation-delay: 0.2s; }
+.animate-in-delay-3 { animation-delay: 0.3s; }
+
+
+/* ==========================================================================
+   20. RESPONSIVE
+   ========================================================================== */
+
+/* Tablet (768–1023px) */
+@media (max-width: 1023px) {
+  .display-xxl { font-size: 42px; letter-spacing: -1.05px; }
+  .display-xl  { font-size: 36px; letter-spacing: -0.72px; }
+  .display-lg  { font-size: 28px; letter-spacing: -0.56px; }
+
+  .hero-section {
+    padding-top: 60px;
+    padding-bottom: 72px;
+  }
+
+  .section-padding {
+    padding-top: var(--space-huge);
+    padding-bottom: var(--space-huge);
+  }
+
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile (<768px) */
+@media (max-width: 767px) {
+  .display-xxl { font-size: 36px; letter-spacing: -0.9px; }
+  .display-xl  { font-size: 30px; letter-spacing: -0.6px; }
+  .display-lg  { font-size: 24px; letter-spacing: -0.48px; }
+  .display-md  { font-size: 22px; letter-spacing: -0.22px; }
+
+  .hero-section {
+    padding-top: 48px;
+    padding-bottom: 56px;
+  }
+
+  .section-padding {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+
+  .stripi-container {
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+  }
+
+  .card-feature-light {
+    padding: var(--space-xl);
+  }
+
+  .login-card .card-feature-light {
+    padding: var(--space-xxl) var(--space-xl);
+  }
+
+  .btn-primary-pill,
+  .btn-secondary,
+  .btn-on-dark {
+    min-height: 44px;
+    padding: 10px 20px;
+  }
+
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header {
+    padding-top: var(--space-xxl);
+    padding-bottom: var(--space-xl);
+  }
+
+  .stripi-table {
+    font-size: 14px;
+  }
+
+  .stripi-table thead th,
+  .stripi-table tbody td {
+    padding: var(--space-sm) var(--space-md);
+  }
+}
+
+/* ── Enterprise Features & Animations ────────────── */
+
+@keyframes breathe {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-mesh {
+  background-size: 200% 200%;
+  animation: breathe 15s ease infinite;
+}
+
+@keyframes loading {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+.shimmer {
+  background: #eee;
+  background-image: linear-gradient(90deg, #eee 0px, #f5f5f5 40px, #eee 80px);
+  background-size: 400px 100%;
+  border-radius: 4px;
+  animation: loading 1.5s infinite linear;
+  display: inline-block;
+  color: transparent !important;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-canvas-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* Mono Hash Interactivity */
+.hash-mono {
+  font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', monospace;
+  font-feature-settings: "tnum";
+  color: #665efd;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.hash-mono:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cast your vote securely on the Decentralized Voting System — powered by Ethereum blockchain and IPFS.">
+  <title>Decentralized Voting</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+
+  <!-- ── Gradient Mesh Hero ─────────────────────────────── -->
+  <header class="gradient-mesh">
+    <nav class="nav-bar">
+      <a href="/" class="nav-brand">
+        <span class="brand-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </span>
+        DVote
+      </a>
+    </nav>
+
+    <div class="hero-section stripi-container">
+      <div id="circuit-breaker-banner" class="mb-lg animate-in" style="display:none; background: #ea2261; color: white; padding: 12px 24px; border-radius: 8px; font-weight: 500; text-align: center; box-shadow: 0 4px 12px rgba(234,34,97,0.3);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        Voting is currently paused by the election commission.
+      </div>
+      <h1 class="display-xl animate-in">Welcome to Decentralized Voting</h1>
+      <p class="body-lg hero-subtitle animate-in animate-in-delay-1">
+        Select your candidate and cast your vote on-chain
+      </p>
+      <div class="hero-meta animate-in animate-in-delay-2">
+        <span class="pill-tag-soft" id="dates-tag">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span id="dates">Loading dates…</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Candidate Table ────────────────────────────────── -->
+  <main class="voting-content band-soft">
+    <div class="stripi-container stripi-container--mid">
+      
+      <div id="election-timer-banner" class="pill-tag-soft" style="font-feature-settings: 'tnum'; display: none; margin: 0 auto 24px auto; width: max-content; font-size: 1.1rem; padding: 12px 24px;"></div>
+
+      <div class="card-feature-light animate-in animate-in-delay-2">
+        <h2 class="heading-md mb-xl">Candidates</h2>
+
+        <table class="stripi-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Party</th>
+            </tr>
+          </thead>
+          <tbody id="boxCandidate">
+            <!-- Candidate rows injected by app.js from IPFS -->
+          </tbody>
+        </table>
+
+        <!-- Vote Action -->
+        <div class="vote-action-area" id="vote">
+          <p class="body-md text-mute">Please select one of the candidates and click the vote button.</p>
+          <button id="voteButton" class="btn-primary-pill" onclick="App.vote()" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Cast Vote
+          </button>
+          <div id="msg"></div>
+        </div>
+
+        <!-- Vote Receipt Area (shown after voting) -->
+        <div id="receipt-area" style="display:none"></div>
+      </div>
+
+      <!-- ── Verify Receipt Module ───────────────────────────── -->
+      <div class="card-feature-light animate-in animate-in-delay-3" style="margin-top: 32px">
+        <h2 class="heading-md mb-lg">Verify an Election Receipt</h2>
+        <p class="body-sm text-mute mb-md">Enter your IPFS Receipt CID to audit your vote on the blockchain.</p>
+        
+        <div class="form-group mb-md">
+          <input type="text" id="receipt-cid-input" class="text-input" placeholder="Enter IPFS CID (e.g. Qm...)" autocomplete="off">
+        </div>
+        
+        <button id="verifyReceiptBtn" class="btn-primary-pill" style="width:100%; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          Audit Ledger Receipt
+        </button>
+
+        <div id="audit-error" class="body-sm mt-sm" style="display:none; color: #ea2261;"></div>
+
+        <div id="audit-result" style="display:none; margin-top: var(--space-lg); padding: var(--space-md); background: #f6f9fc; border-radius: var(--rounded-md); border: 1px solid var(--color-canvas-border);">
+          <h3 class="heading-sm mb-sm" style="color:var(--color-primary)">✓ Ledger Match Found</h3>
+          <p class="caption mb-xs"><strong>Election/Candidate ID:</strong> <span id="audit-election-id"></span></p>
+          <p class="caption mb-xs"><strong>MetaMask Wallet:</strong> <span id="audit-wallet" style="word-break: break-all;"></span></p>
+          <p class="caption"><strong>Ganache Block #:</strong> <span id="audit-block"></span></p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ── Account Footer ─────────────────────────────────── -->
+  <footer class="account-footer">
+    <div class="stripi-container">
+      <p id="accountAddress" class="caption text-mute"></p>
+    </div>
+  </footer>
+
+  <script src="/dist/app.bundle.js"></script>
+</body>
+
+</html>

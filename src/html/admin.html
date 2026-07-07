@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="Administrative dashboard for the Decentralized Voting System — manage candidates, election dates, and voter whitelist via IPFS.">
+  <title>Admin Dashboard — Decentralized Voting</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/index.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <!-- ── Gradient Mesh Hero ─────────────────────────────── -->
+  <header class="gradient-mesh">
+    <nav class="nav-bar">
+      <a href="/" class="nav-brand">
+        <span class="brand-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+        </span>
+        Decentralized Voting
+      </a>
+      <div class="nav-actions">
+        <span class="pill-tag-soft">Admin Dashboard</span>
+      </div>
+    </nav>
+
+    <div class="hero-section stripi-container">
+      <h1 class="display-xl animate-in">Election Management</h1>
+      <p class="body-lg hero-subtitle animate-in animate-in-delay-1">
+        Configure candidates, voting schedule, and voter whitelist all stored on IPFS
+      </p>
+    </div>
+  </header>
+
+  <!-- ── Content ──────────────────────────────────────── -->
+  <main class="voting-content band-soft">
+    <div class="stripi-container stripi-container--mid">
+
+      <!-- Card 1: Add Candidate -->
+      <div class="card-feature-light animate-in animate-in-delay-1">
+        <h2 class="heading-md mb-xl heading-section">Add Candidate</h2>
+
+        <div class="admin-form-grid">
+          <div class="form-group">
+            <label class="form-label" for="name">Candidate Name</label>
+            <input id="name" type="text" class="text-input" name="name" placeholder="Full name" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="party">Party Affiliation</label>
+            <input id="party" type="text" class="text-input" name="party" placeholder="Party name">
+          </div>
+        </div>
+
+        <div class="admin-form-actions">
+          <button id="addCandidate" type="button" class="btn-primary-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Candidate
+          </button>
+          <p id="Aday" class="status-message"></p>
+        </div>
+      </div>
+
+      <!-- Card 2: Define Voting Dates & Name -->
+      <div class="card-feature-light animate-in animate-in-delay-2" style="margin-top: var(--space-xl);">
+        <h2 class="heading-md mb-xl heading-section">Define Election Setup</h2>
+
+        <div class="form-group mb-md">
+          <label class="form-label" for="election-name">Election Name</label>
+          <input id="election-name" type="text" class="text-input" name="election-name"
+            placeholder="e.g. 2026 Board of Directors">
+        </div>
+
+        <div class="admin-form-grid">
+          <div class="form-group">
+            <label class="form-label" for="startDate">Start Date</label>
+            <input id="startDate" type="date" class="text-input" name="startDate">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="endDate">End Date</label>
+            <input id="endDate" type="date" class="text-input" name="endDate">
+          </div>
+        </div>
+
+        <div class="admin-form-actions">
+          <button id="addDate" type="button" class="btn-primary-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Save Election Details
+          </button>
+          <p class="status-message"></p>
+        </div>
+      </div>
+
+      <!-- Card 2.5: Current Election Details -->
+      <div class="card-feature-light animate-in animate-in-delay-2"
+        style="margin-top: var(--space-xl); background-color: #f6f9fc;">
+        <h2 class="heading-md mb-md heading-section">Current Election Details</h2>
+        <table class="stripi-table" style="background: transparent;">
+          <tbody id="election-details-box">
+            <tr>
+              <td class="text-mute">Loading configuration from IPFS...</td>
+            </tr>
+          </tbody>
+        </table>
+        <button id="exportManifestBtn" class="btn-primary-pill"
+          style="margin-top: 16px; background: transparent; border: 1px solid var(--color-primary); color: var(--color-primary); display: none;">
+          Export Cryptographic Audit Manifest
+        </button>
+      </div>
+
+      <!-- Card 3: Voter Whitelist -->
+      <div class="card-feature-light animate-in animate-in-delay-3" style="margin-top: var(--space-xl);">
+        <h2 class="heading-md mb-xl heading-section">Voter Whitelist</h2>
+        <p class="body-sm text-mute" style="margin-bottom:var(--space-lg)">
+          Enter a JSON object with a <code>"voters"</code> array. Each voter can be a simple string ID or an object with
+          <code>id</code>, <code>pass</code>, and <code>role</code> fields.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="whitelistData">Whitelist JSON</label>
+          <textarea id="whitelistData" class="text-input whitelist-textarea" rows="8"
+            placeholder='{"voters": [{"address": "0x123...", "role": "user"}, {"address": "0xabc...", "role": "admin"}]}'></textarea>
+        </div>
+
+        <div class="admin-form-actions">
+          <button id="setWhitelist" type="button" class="btn-primary-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v-2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="20" y1="8" x2="20" y2="14" />
+              <line x1="23" y1="11" x2="17" y2="11" />
+            </svg>
+            Upload Whitelist to IPFS
+          </button>
+          <p id="whitelist-status" class="status-message"></p>
+        </div>
+      </div>
+
+      <!-- Card 4: Circuit Breaker -->
+      <div class="card-feature-light animate-in animate-in-delay-4" style="margin-top: var(--space-xl);">
+        <h2 class="heading-md mb-xl heading-section">Circuit Breaker</h2>
+        <p class="body-sm text-mute" style="margin-bottom:var(--space-lg)">
+          Immediately pause all on-chain voting activity. This action is broadcasted on the blockchain ledger.
+        </p>
+
+        <div class="admin-form-actions" style="justify-content: flex-start;">
+          <button id="togglePauseBtn" type="button" class="btn-primary-pill" style="background-color: #ea2261;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+            </svg>
+            Halt Election
+          </button>
+          <p id="pauseStatus" class="status-message" style="margin-left: 16px; font-weight: bold;"></p>
+        </div>
+      </div>
+
+      <!-- Card 5: Pending Candidate Queue -->
+      <div class="card-feature-light animate-in animate-in-delay-5" style="margin-top: var(--space-xl);">
+        <h2 class="heading-md mb-xl heading-section">Pending Candidates</h2>
+
+        <table class="stripi-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Party</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="pendingCandidatesBox">
+            <!-- Injected via JS -->
+          </tbody>
+        </table>
+        <p id="queueStatus" class="body-sm text-mute mt-md" style="display:none;">Loading queue...</p>
+      </div>
+
+      <!-- Card 6: Live Election Analytics -->
+      <div class="card-feature-light animate-in animate-in-delay-6" style="margin-top: var(--space-xl);">
+        <h2 class="heading-md mb-lg heading-section">Live Election Analytics</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 32px;">
+          <div style="flex: 1 1 300px;">
+            <h3 class="body-md text-mute mb-sm" style="text-align:center;">Individual Vote Tallies</h3>
+            <canvas id="barChart"></canvas>
+          </div>
+          <div style="flex: 1 1 300px; display:flex; flex-direction:column; align-items:center;">
+            <h3 class="body-md text-mute mb-sm" style="text-align:center;">Party Vote Share</h3>
+            <div style="width: 250px; height: 250px;">
+              <canvas id="doughnutChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Verify Receipt Module ───────────────────────────── -->
+      <div class="card-feature-light animate-in animate-in-delay-6" style="margin-top: var(--space-xl);">
+        <h2 class="heading-md mb-lg">Verify an Election Receipt</h2>
+        <p class="body-sm text-mute mb-md">Enter your IPFS Receipt CID to audit your vote on the blockchain.</p>
+
+        <div class="form-group mb-md">
+          <input type="text" id="receipt-cid-input" class="text-input" placeholder="Enter IPFS CID (e.g. Qm...)"
+            autocomplete="off">
+        </div>
+
+        <button id="verifyReceiptBtn" class="btn-primary-pill" style="width:100%; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          Audit Ledger Receipt
+        </button>
+
+        <div id="audit-error" class="body-sm mt-sm" style="display:none; color: #ea2261;"></div>
+
+        <div id="audit-result"
+          style="display:none; margin-top: var(--space-lg); padding: var(--space-md); background: #f6f9fc; border-radius: var(--rounded-md); border: 1px solid var(--color-canvas-border);">
+          <h3 class="heading-sm mb-sm" style="color:var(--color-primary)">✓ Ledger Match Found</h3>
+          <p class="caption mb-xs"><strong>Election/Candidate ID:</strong> <span id="audit-election-id"></span></p>
+          <p class="caption mb-xs"><strong>MetaMask Wallet:</strong> <span id="audit-wallet"
+              style="word-break: break-all;"></span></p>
+          <p class="caption"><strong>Ganache Block #:</strong> <span id="audit-block"></span></p>
+        </div>
+      </div>
+
+      <!-- Faux IDE Logger -->
+      <div class="card-feature-light animate-in animate-in-delay-7"
+        style="margin-top: var(--space-xl); background: #0d253d; border: 1px solid #1a3c5a;">
+        <div
+          style="font-family: 'Courier New', monospace; font-size: 13px; color: #4af626; height: 150px; overflow-y: auto; white-space: pre-wrap;"
+          id="system-logger">
+          [SYSTEM]: Admin session initialized. Waiting for commands...
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/dist/app.bundle.js"></script>
+</body>
+
+</html>
