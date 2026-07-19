@@ -21,9 +21,20 @@ async function uploadToIPFS(data) {
 
 async function fetchFromIPFS(cid) {
   const url = PINATA_GATEWAY + '/' + cid;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to fetch from IPFS: ' + cid);
-  return response.json();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!response.ok) throw new Error('Failed to fetch from IPFS: ' + cid);
+    return await response.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Network Error: Unable to retrieve election data');
+    }
+    throw err;
+  }
 }
 
 function setText(id, text) {
@@ -60,8 +71,104 @@ window.App = {
 
   // ── Initialize ───────────────────────────────────────────
   eventStart: async function () {
+    // Detect admin page by the hidden dashboard container
+    var isAdminPage = !!document.getElementById('admin-dashboard-content');
+
+    // ─── ADMIN ZERO-TRUST AUTH GATE ───────────────────────
+    if (isAdminPage) {
+      try {
+        // Step 1: Environment Check — no MetaMask = instant deny
+        if (typeof window.ethereum === 'undefined') {
+          console.error('Unauthorized: No Web3 wallet detected.');
+          window.location.replace('index.html');
+          return;
+        }
+
+        // Step 2: Await Wallet Connection (strict)
+        var accounts;
+        try {
+          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        } catch (connErr) {
+          console.error('Unauthorized: Wallet connection rejected.');
+          window.location.replace('index.html');
+          return;
+        }
+        if (!accounts || accounts.length === 0) {
+          console.error('Unauthorized: No accounts found.');
+          window.location.replace('index.html');
+          return;
+        }
+        var currentUser = accounts[0].toLowerCase();
+
+        // Step 3: Cryptographic Verification — owner() from contract
+        var web3Instance = new Web3(window.ethereum);
+        var VotingContract = contract(votingArtifacts);
+        VotingContract.setProvider(web3Instance.currentProvider);
+        VotingContract.defaults({ from: accounts[0], gas: 6654755 });
+
+        var instance = await VotingContract.deployed();
+        var contractOwner = (await instance.admin()).toLowerCase();
+
+        // Step 4: Strict Conditional Routing
+        if (currentUser !== contractOwner) {
+          console.error('Unauthorized: Admin wallet required. Connected: ' + currentUser + ', Owner: ' + contractOwner);
+          window.location.replace('index.html');
+          return;
+        }
+
+        // ── AUTH PASSED — reveal dashboard ─────────────────
+        App.account = accounts[0];
+        App.contractInstance = instance;
+        App.isAdmin = true;
+
+        // Fade out overlay, reveal content
+        var overlay = document.getElementById('admin-auth-overlay');
+        var dashboard = document.getElementById('admin-dashboard-content');
+        if (dashboard) dashboard.style.display = 'block';
+        if (overlay) {
+          overlay.classList.add('fade-out');
+          setTimeout(function () { overlay.remove(); }, 500);
+        }
+
+        setText('accountAddress', 'Your Account: ' + App.account);
+
+        // Step 5: Hardened event listeners — post-auth surveillance
+        window.ethereum.on('accountsChanged', function (newAccounts) {
+          // Immediately hide dashboard on ANY account change
+          var dash = document.getElementById('admin-dashboard-content');
+          if (dash) dash.style.display = 'none';
+
+          if (!newAccounts || newAccounts.length === 0 ||
+              newAccounts[0].toLowerCase() !== contractOwner) {
+            console.error('Unauthorized: Admin wallet disconnected or changed.');
+            window.location.replace('index.html');
+          } else {
+            window.location.reload();
+          }
+        });
+
+        window.ethereum.on('disconnect', function () {
+          var dash = document.getElementById('admin-dashboard-content');
+          if (dash) dash.style.display = 'none';
+          console.error('Unauthorized: Wallet disconnected.');
+          window.location.replace('index.html');
+        });
+
+        // ── Load admin-specific data (only after auth) ────
+        await App.loadElectionMetadata();
+        await App.loadCandidates();
+        App.bindAdminEvents();
+        App.bindVerificationEvents();
+
+      } catch (err) {
+        console.error('Admin auth failure:', err);
+        window.location.replace('index.html');
+      }
+      return; // Admin flow complete — do not fall through to voter flow
+    }
+
+    // ─── VOTER PAGE FLOW (unchanged) ──────────────────────
     try {
-      // Connect Web3
       var web3Instance;
       if (window.ethereum) {
         var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -73,7 +180,6 @@ window.App = {
         App.account = accts[0];
       }
 
-      // Load contract
       var VotingContract = contract(votingArtifacts);
       VotingContract.setProvider(web3Instance.currentProvider);
       VotingContract.defaults({ from: App.account, gas: 6654755 });
@@ -81,23 +187,18 @@ window.App = {
       var instance = await VotingContract.deployed();
       App.contractInstance = instance;
 
-      // Check admin status
       var adminAddress = await instance.admin();
       App.isAdmin = (App.account.toLowerCase() === adminAddress.toLowerCase());
 
-      // Display account
       setText('accountAddress', 'Your Account: ' + App.account);
 
-      // Admin guard for admin page
-      var isAdminPage = !!document.getElementById('addCandidate');
-      if (isAdminPage) {
-        if (!App.isAdmin) {
-          document.body.innerHTML = '<div style="text-align:center;padding:100px"><h1>Access Denied</h1><p>You must connect with the admin wallet.</p><a href="/">← Back to Login</a></div>';
-          return;
-        }
+      // Listen for account changes on voter page
+      if (window.ethereum) {
+        window.ethereum.on('accountsChanged', function () {
+          window.location.reload();
+        });
       }
 
-      // Load page-specific data
       await App.loadElectionMetadata();
       await App.loadCandidates();
 
@@ -129,10 +230,7 @@ window.App = {
         }
       }
 
-      // Bind admin events
       App.bindAdminEvents();
-      
-      // Bind verification events
       App.bindVerificationEvents();
 
     } catch (err) {
@@ -251,7 +349,7 @@ window.App = {
   },
 
 
-  // ── Load Candidates from IPFS ────────────────────────────
+  // ── Load Candidates (on-chain name/party or IPFS fallback) ─
   loadCandidates: async function () {
     try {
       var count = await App.contractInstance.getCountCandidates();
@@ -269,15 +367,33 @@ window.App = {
       }
 
       // Fetch all candidate on-chain data
+      // getCandidate returns: (id, name, party, ipfsCID, voteCount)
       var candidatesData = [];
-      var totalVotes = 0;
       for (var i = 1; i <= countNum; i++) {
         var data = await App.contractInstance.getCandidate(i);
-        var vCount = parseInt(data[2].toString());
-        totalVotes += vCount;
+        var id = data[0].toString();
+        var name = data[1];
+        var party = data[2];
+        var ipfsCID = data[3];
+        var vCount = parseInt(data[4].toString());
+
+        // If on-chain name is empty, fall back to IPFS CID
+        if (!name && ipfsCID) {
+          try {
+            var ipfsData = await fetchFromIPFS(ipfsCID);
+            name = ipfsData.name || ('CID: ' + ipfsCID.substring(0, 12) + '…');
+            party = ipfsData.party || 'Unknown';
+          } catch (e) {
+            console.error('Failed to fetch candidate CID:', ipfsCID, e);
+            name = 'CID: ' + ipfsCID.substring(0, 12) + '…';
+            party = 'Unknown';
+          }
+        }
+
         candidatesData.push({
-          id: data[0].toString(),
-          ipfsCID: data[1],
+          id: id,
+          name: name || 'Unnamed',
+          party: party || '—',
           voteCount: vCount
         });
       }
@@ -286,21 +402,13 @@ window.App = {
       boxEl.innerHTML = '';
       for (var i = 0; i < candidatesData.length; i++) {
         var c = candidatesData[i];
-        
-        var candidateInfo = { name: 'Loading…', party: '—' };
-        try {
-          candidateInfo = await fetchFromIPFS(c.ipfsCID);
-        } catch (e) {
-          console.error('Failed to fetch candidate CID:', c.ipfsCID, e);
-          candidateInfo = { name: 'CID: ' + c.ipfsCID.substring(0, 12) + '…', party: 'Unknown' };
-        }
 
         var row = '<tr>'
           + '<td><label class="candidate-radio">'
           + '<input type="radio" name="candidate" value="' + c.id + '" id="candidate-' + c.id + '">'
-          + '<span class="radio-mark"></span>' + candidateInfo.name
+          + '<span class="radio-mark"></span>' + c.name
           + '</label></td>'
-          + '<td>' + candidateInfo.party + '</td>'
+          + '<td>' + c.party + '</td>'
           + '</tr>';
 
         boxEl.innerHTML += row;
@@ -365,7 +473,11 @@ window.App = {
 
     } catch (err) {
       console.error('Vote error:', err);
-      setHTML('msg', '<p style="color:var(--color-ruby)">Vote failed: ' + (err.message || err) + '</p>');
+      if (err.code === 4001 || (err.message && err.message.includes('User denied transaction'))) {
+        setHTML('msg', '<p style="color:var(--color-ruby)">Transaction cancelled by user</p>');
+      } else {
+        setHTML('msg', '<p style="color:var(--color-ruby)">Vote failed: ' + (err.message || err) + '</p>');
+      }
       enable('voteButton');
     }
   },
@@ -478,7 +590,11 @@ window.App = {
 
           } catch (err) {
             console.error('Approve error:', err);
-            App.logSystem('Error approving candidate: ' + err.message);
+            if (err.code === 4001 || (err.message && err.message.includes('User denied transaction'))) {
+              App.logSystem('Transaction cancelled by user for candidate: ' + c.name);
+            } else {
+              App.logSystem('Error approving candidate: ' + err.message);
+            }
             btn.disabled = false;
             btn.textContent = 'Approve';
           }
@@ -516,26 +632,36 @@ window.App = {
 
       for (var i = 1; i <= countNum; i++) {
         var data = await App.contractInstance.getCandidate(i);
-        var vCount = parseInt(data[2].toString());
-        var ipfsCID = data[1];
+        // getCandidate returns: (id, name, party, ipfsCID, voteCount)
+        var cName = data[1];
+        var cParty = data[2];
+        var ipfsCID = data[3];
+        var vCount = parseInt(data[4].toString());
 
-        var candidateInfo = { name: 'CID ' + ipfsCID.substring(0, 8), party: 'Unknown' };
-        try {
-          candidateInfo = await fetchFromIPFS(ipfsCID);
-        } catch (e) {
-          console.error('Failed to fetch candidate CID for analytics:', ipfsCID);
+        // Fall back to IPFS if on-chain name is empty (legacy candidate)
+        if (!cName && ipfsCID) {
+          try {
+            var ipfsData = await fetchFromIPFS(ipfsCID);
+            cName = ipfsData.name || 'Unknown';
+            cParty = ipfsData.party || 'Unknown';
+          } catch (e) {
+            console.error('Failed to fetch candidate CID for analytics:', ipfsCID);
+            cName = 'CID ' + ipfsCID.substring(0, 8);
+            cParty = 'Unknown';
+          }
         }
 
         candidatesData.push({
-          name: candidateInfo.name,
+          name: cName || 'Unnamed',
           votes: vCount
         });
 
         // Reducer for Doughnut Chart
-        if (!partyVotes[candidateInfo.party]) {
-          partyVotes[candidateInfo.party] = 0;
+        var partyKey = cParty || 'Unknown';
+        if (!partyVotes[partyKey]) {
+          partyVotes[partyKey] = 0;
         }
-        partyVotes[candidateInfo.party] += vCount;
+        partyVotes[partyKey] += vCount;
       }
 
       // Render Bar Chart
@@ -640,91 +766,133 @@ window.App = {
       });
     }
 
-    // ── Add Candidate ──────────────────────────────────────
-    var addCandidateBtn = document.getElementById('addCandidate');
-    if (addCandidateBtn) {
-      addCandidateBtn.addEventListener('click', async function () {
-        var name = getVal('name').trim();
-        var party = getVal('party').trim();
-        var statusEl = document.getElementById('Aday');
+    // ── Dynamic Candidate Roster Rows ──────────────────────
+    var addRowBtn = document.getElementById('addCandidateRow');
+    if (addRowBtn) {
+      addRowBtn.addEventListener('click', function () {
+        var roster = document.getElementById('candidate-roster');
+        if (!roster) return;
 
-        if (!name || !party) {
-          if (statusEl) statusEl.textContent = 'Please fill in both fields.';
-          return;
-        }
-
-        addCandidateBtn.disabled = true;
-        if (statusEl) statusEl.textContent = 'Uploading to IPFS…';
-
-        try {
-          // 1. Upload candidate data to IPFS
-          var cid = await uploadToIPFS({
-            _metadata_name: 'dvote-candidate',
-            name: name,
-            party: party
-          });
-
-          if (statusEl) statusEl.textContent = 'Pinned! Saving CID on-chain…';
-
-          // 2. Store CID on blockchain
-          await App.contractInstance.addCandidate(cid);
-
-          if (statusEl) statusEl.textContent = '✓ Candidate added (CID: ' + cid.substring(0, 16) + '…)';
-          document.getElementById('name').value = '';
-          document.getElementById('party').value = '';
-
-          // Refresh candidate list if visible
-          await App.loadCandidates();
-
-        } catch (err) {
-          console.error('Add candidate error:', err);
-          if (statusEl) statusEl.textContent = 'Error: ' + (err.message || err);
-        }
-
-        addCandidateBtn.disabled = false;
+        var row = document.createElement('div');
+        row.className = 'candidate-row admin-form-grid';
+        row.style.cssText = 'margin-bottom: var(--space-sm); align-items: flex-end;';
+        row.innerHTML =
+          '<div class="form-group" style="margin-bottom:0;">'
+          + '<label class="form-label">&nbsp;</label>'
+          + '<input type="text" class="text-input candidate-name" placeholder="Full name" autocomplete="off">'
+          + '</div>'
+          + '<div class="form-group" style="margin-bottom:0;">'
+          + '<label class="form-label">&nbsp;</label>'
+          + '<input type="text" class="text-input candidate-party" placeholder="Party affiliation">'
+          + '</div>'
+          + '<div style="flex: 0 0 36px;">'
+          + '<button type="button" style="background:none; border:none; color:#ea2261; cursor:pointer; font-size:18px; font-weight:bold; padding:8px;" onclick="this.closest(\'.candidate-row\').remove()">✕</button>'
+          + '</div>';
+        roster.appendChild(row);
       });
     }
 
-
-    // ── Set Election Metadata ──────────────────────────────
-    var addDateBtn = document.getElementById('addDate');
-    if (addDateBtn) {
-      addDateBtn.addEventListener('click', async function () {
-        var electionName = getVal('election-name');
+    // ── Deploy Election State (Atomic) ────────────────────
+    var deployBtn = document.getElementById('deployElectionBtn');
+    if (deployBtn) {
+      deployBtn.addEventListener('click', async function () {
+        var statusEl = document.getElementById('deploy-status');
+        var electionName = getVal('election-name').trim();
         var startDate = getVal('startDate');
         var endDate = getVal('endDate');
-        var statusEl = addDateBtn.parentElement.querySelector('.status-message');
 
+        // Collect candidates from the dynamic roster
+        var nameInputs = document.querySelectorAll('#candidate-roster .candidate-name');
+        var partyInputs = document.querySelectorAll('#candidate-roster .candidate-party');
+        var candidateNames = [];
+        var candidateParties = [];
+
+        for (var i = 0; i < nameInputs.length; i++) {
+          var n = nameInputs[i].value.trim();
+          var p = partyInputs[i].value.trim();
+          if (n && p) {
+            candidateNames.push(n);
+            candidateParties.push(p);
+          }
+        }
+
+        // Validation
         if (!electionName || !startDate || !endDate) {
-          if (statusEl) statusEl.textContent = 'Please fill in all fields (Name, Start, End).';
+          if (statusEl) statusEl.textContent = 'Please fill in Election Name, Start, and End dates.';
+          return;
+        }
+        if (candidateNames.length === 0) {
+          if (statusEl) statusEl.textContent = 'Please add at least one candidate with both Name and Party.';
           return;
         }
 
-        addDateBtn.disabled = true;
-        if (statusEl) statusEl.textContent = 'Uploading metadata to IPFS…';
+        deployBtn.disabled = true;
 
         try {
-          var cid = await uploadToIPFS({
+          // Step 1: Upload metadata to IPFS
+          if (statusEl) statusEl.textContent = 'Uploading election metadata to IPFS…';
+          App.logSystem('Deploying election: "' + electionName + '" with ' + candidateNames.length + ' candidate(s).');
+
+          var metadataCID = await uploadToIPFS({
             _metadata_name: 'dvote-election-metadata',
             electionName: electionName,
             startDate: startDate,
             endDate: endDate,
+            candidates: candidateNames.map(function(n, idx) {
+              return { name: n, party: candidateParties[idx] };
+            }),
             timestamp: Date.now(),
-            status: "Active"
+            status: 'Active'
           });
 
-          if (statusEl) statusEl.textContent = 'Pinned! Saving CID on-chain…';
+          App.logSystem('Metadata pinned to IPFS. CID: ' + metadataCID);
 
-          await App.contractInstance.setElectionMetadata(cid);
+          // Step 2: Atomic blockchain transaction
+          if (statusEl) statusEl.textContent = 'Broadcasting atomic initializeElection transaction…';
+          App.logSystem('Calling initializeElection on-chain…');
 
-          if (statusEl) statusEl.textContent = '✓ Election dates set (CID: ' + cid.substring(0, 16) + '…)';
+          await App.contractInstance.initializeElection(
+            metadataCID,
+            candidateNames,
+            candidateParties,
+            { from: App.account }
+          );
+
+          App.logSystem('Election deployed successfully on-chain.');
+          if (statusEl) statusEl.textContent = '✓ Election deployed! (' + candidateNames.length + ' candidates on-chain)';
+
+          // Step 3: Clear the form
+          document.getElementById('election-name').value = '';
+          document.getElementById('startDate').value = '';
+          document.getElementById('endDate').value = '';
+          var roster = document.getElementById('candidate-roster');
+          if (roster) {
+            // Keep only first row, clear its inputs
+            var rows = roster.querySelectorAll('.candidate-row');
+            for (var r = 1; r < rows.length; r++) { rows[r].remove(); }
+            var firstRow = rows[0];
+            if (firstRow) {
+              firstRow.querySelector('.candidate-name').value = '';
+              firstRow.querySelector('.candidate-party').value = '';
+            }
+          }
+
+          // Step 4: Refresh UI
+          await App.loadElectionMetadata();
+          await App.loadCandidates();
+          App.loadAdminAnalytics();
 
         } catch (err) {
-          console.error('Set dates error:', err);
-          if (statusEl) statusEl.textContent = 'Error: ' + (err.message || err);
+          console.error('Deploy election error:', err);
+          App.logSystem('Deploy election error: ' + err.message);
+          if (err.code === 4001 || (err.message && err.message.includes('User denied transaction'))) {
+            if (statusEl) statusEl.textContent = 'Transaction cancelled by user';
+          } else {
+            if (statusEl) statusEl.textContent = 'Error: ' + (err.message || err);
+          }
         }
 
-        addDateBtn.disabled = false;
+        deployBtn.disabled = false;
       });
     }
 
@@ -820,17 +988,56 @@ window.App = {
           setText('audit-election-id', electionId);
           setText('audit-wallet', txReceipt.from);
           setText('audit-block', txReceipt.blockNumber);
-          
-          resultDiv.style.display = 'block';
+          if (resultDiv) resultDiv.style.display = 'block';
 
         } catch (err) {
-          console.error("Verification error:", err);
+          console.error('Receipt verify error:', err);
           if (errorDiv) {
-             errorDiv.textContent = 'Verification failed: ' + (err.message || err);
-             errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Error: ' + err.message;
+            errorDiv.style.display = 'block';
           }
         }
         verifyBtn.disabled = false;
+      });
+    }
+
+    var fetchWhitelistBtn = document.getElementById('fetchWhitelistBtn');
+    if (fetchWhitelistBtn) {
+      fetchWhitelistBtn.addEventListener('click', async function() {
+        var cidInput = document.getElementById('whitelist-cid-input');
+        var errorDiv = document.getElementById('whitelist-error');
+        var resultPre = document.getElementById('whitelist-result');
+
+        var cid = cidInput ? cidInput.value.trim() : '';
+        if (!cid) {
+          if (errorDiv) {
+            errorDiv.textContent = 'Please enter a valid Whitelist CID.';
+            errorDiv.style.display = 'block';
+          }
+          if (resultPre) resultPre.style.display = 'none';
+          return;
+        }
+
+        fetchWhitelistBtn.disabled = true;
+        if (errorDiv) errorDiv.style.display = 'none';
+        if (resultPre) resultPre.style.display = 'none';
+        
+        try {
+          var data = await fetchFromIPFS(cid);
+          
+          if (resultPre) {
+            resultPre.textContent = JSON.stringify(data, null, 2);
+            resultPre.style.display = 'block';
+          }
+        } catch (err) {
+          console.error('Whitelist fetch error:', err);
+          if (errorDiv) {
+            errorDiv.textContent = 'Error: Could not retrieve whitelist. Ensure the CID is correct and pinned to IPFS.';
+            errorDiv.style.display = 'block';
+          }
+        }
+        
+        fetchWhitelistBtn.disabled = false;
       });
     }
   }

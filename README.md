@@ -114,4 +114,4 @@ The application should now be accessible at `http://localhost:8080/`.
 │   └── js/                     # Frontend logic (app.js, login.js)
 ├── index.js                    # Express Server & IPFS Relay Endpoint
 ├── truffle-config.js           # Truffle configuration
-└── .env                        # Pinata API Keys configuration
+└── .env                        # Pinata API Keys configuration~

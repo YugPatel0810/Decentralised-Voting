@@ -15,6 +15,39 @@
 
 <body>
 
+  <!-- ── Zero-Trust Auth Overlay (Default-Deny) ──────── -->
+  <div id="admin-auth-overlay" style="
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1c1e54 0%, #0d253d 100%);
+    color: #fff; font-family: 'Inter', sans-serif;
+  ">
+    <div style="
+      width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: #533afd; border-radius: 50%;
+      animation: admin-spinner 0.8s linear infinite;
+    "></div>
+    <p style="margin-top: 24px; font-size: 16px; font-weight: 500; letter-spacing: 0.02em;">
+      Authenticating Secure Admin Session…
+    </p>
+    <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">
+      Verifying wallet ownership against smart contract
+    </p>
+  </div>
+  <style>
+    @keyframes admin-spinner {
+      to { transform: rotate(360deg); }
+    }
+    #admin-auth-overlay.fade-out {
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+  </style>
+
+  <!-- ── Dashboard Content (HIDDEN by default, revealed only after auth) ── -->
+  <div id="admin-dashboard-content" style="display: none;">
+
   <!-- ── Gradient Mesh Hero ─────────────────────────────── -->
   <header class="gradient-mesh">
     <nav class="nav-bar">
@@ -43,37 +76,12 @@
   <main class="voting-content band-soft">
     <div class="stripi-container stripi-container--mid">
 
-      <!-- Card 1: Add Candidate -->
+      <!-- Card 1: Election Initialization Console -->
       <div class="card-feature-light animate-in animate-in-delay-1">
-        <h2 class="heading-md mb-xl heading-section">Add Candidate</h2>
-
-        <div class="admin-form-grid">
-          <div class="form-group">
-            <label class="form-label" for="name">Candidate Name</label>
-            <input id="name" type="text" class="text-input" name="name" placeholder="Full name" autocomplete="off">
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="party">Party Affiliation</label>
-            <input id="party" type="text" class="text-input" name="party" placeholder="Party name">
-          </div>
-        </div>
-
-        <div class="admin-form-actions">
-          <button id="addCandidate" type="button" class="btn-primary-pill">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-              stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Add Candidate
-          </button>
-          <p id="Aday" class="status-message"></p>
-        </div>
-      </div>
-
-      <!-- Card 2: Define Voting Dates & Name -->
-      <div class="card-feature-light animate-in animate-in-delay-2" style="margin-top: var(--space-xl);">
-        <h2 class="heading-md mb-xl heading-section">Define Election Setup</h2>
+        <h2 class="heading-md mb-xl heading-section">Election Initialization Console</h2>
+        <p class="body-sm text-mute" style="margin-bottom: var(--space-lg);">
+          Configure the entire election in a single atomic blockchain transaction.
+        </p>
 
         <div class="form-group mb-md">
           <label class="form-label" for="election-name">Election Name</label>
@@ -83,27 +91,56 @@
 
         <div class="admin-form-grid">
           <div class="form-group">
-            <label class="form-label" for="startDate">Start Date</label>
-            <input id="startDate" type="date" class="text-input" name="startDate">
+            <label class="form-label" for="startDate">Start Date & Time</label>
+            <input id="startDate" type="datetime-local" class="text-input" name="startDate">
           </div>
           <div class="form-group">
-            <label class="form-label" for="endDate">End Date</label>
-            <input id="endDate" type="date" class="text-input" name="endDate">
+            <label class="form-label" for="endDate">End Date & Time</label>
+            <input id="endDate" type="datetime-local" class="text-input" name="endDate">
           </div>
         </div>
 
-        <div class="admin-form-actions">
-          <button id="addDate" type="button" class="btn-primary-pill">
+        <div style="margin-top: var(--space-xl); border-top: 1px solid var(--color-canvas-border); padding-top: var(--space-lg);">
+          <h3 class="body-md" style="font-weight: 600; margin-bottom: var(--space-md);">Candidate Roster</h3>
+
+          <div id="candidate-roster">
+            <!-- Dynamic candidate rows injected here -->
+            <div class="candidate-row admin-form-grid" style="margin-bottom: var(--space-sm); align-items: flex-end;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Name</label>
+                <input type="text" class="text-input candidate-name" placeholder="Full name" autocomplete="off">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label">Party</label>
+                <input type="text" class="text-input candidate-party" placeholder="Party affiliation">
+              </div>
+              <div style="flex: 0 0 36px;">
+                <!-- No remove button on first row -->
+              </div>
+            </div>
+          </div>
+
+          <button id="addCandidateRow" type="button" class="btn-primary-pill"
+            style="background: transparent; border: 1px dashed var(--color-primary); color: var(--color-primary); margin-top: var(--space-sm); padding: 6px 16px; font-size: 13px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Candidate Row
+          </button>
+        </div>
+
+        <div class="admin-form-actions" style="margin-top: var(--space-xl);">
+          <button id="deployElectionBtn" type="button" class="btn-primary-pill">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
               stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
-            Save Election Details
+            Deploy Election State
           </button>
-          <p class="status-message"></p>
+          <p id="deploy-status" class="status-message"></p>
         </div>
       </div>
 
@@ -241,6 +278,32 @@
         </div>
       </div>
 
+      <!-- ── Audit Whitelist Module ────────────────────────────── -->
+      <div class="card-feature-light animate-in animate-in-delay-6" style="margin-top: var(--space-xl);">
+        <h2 class="heading-md mb-lg">Audit Election Whitelist</h2>
+        <p class="body-sm text-mute mb-md">Enter the IPFS Whitelist CID to decode and view authorized voter addresses.</p>
+
+        <div class="form-group mb-md">
+          <input type="text" id="whitelist-cid-input" class="text-input" placeholder="Enter Whitelist CID (e.g., Qm...)"
+            autocomplete="off">
+        </div>
+
+        <button id="fetchWhitelistBtn" class="btn-primary-pill" style="width:100%; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Fetch Whitelist from IPFS
+        </button>
+
+        <div id="whitelist-error" class="body-sm mt-sm" style="display:none; color: #ea2261;"></div>
+
+        <pre id="whitelist-result" class="body-sm"
+          style="display:none; margin-top: var(--space-lg); padding: var(--space-md); background: #f6f9fc; border-radius: var(--rounded-md); border: 1px solid var(--color-canvas-border); overflow-x: auto; font-family: 'Courier New', Courier, monospace;"></pre>
+      </div>
+
       <!-- Faux IDE Logger -->
       <div class="card-feature-light animate-in animate-in-delay-7"
         style="margin-top: var(--space-xl); background: #0d253d; border: 1px solid #1a3c5a;">
@@ -254,7 +317,9 @@
     </div>
   </main>
 
-  <script src="/dist/app.bundle.js"></script>
+  </div><!-- /admin-dashboard-content -->
+
+  <script src="/dist/app.bundle.js?v=2"></script>
 </body>
 
 </html>
